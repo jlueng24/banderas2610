@@ -1,79 +1,70 @@
 
-// achievements.js — Vitrina de logros en MODAL (como el Álbum)
-(function () {
-  const LS = {
-    achievements: 'pro_achievements',
-    achCatalog: 'pro_ach_catalog'
-  };
-  const $ = s => document.querySelector(s);
+// achievements.js — Modal seguro y aislado (no interfiere con la app)
+(function(){
+  // Helpers locales (no contaminan global)
+  const $  = s => document.querySelector(s);
   const $$ = s => Array.from(document.querySelectorAll(s));
 
+  const LS = { achievements:'pro_achievements', achCatalog:'pro_ach_catalog' };
+
   const catEmoji = {
-    'Progreso': '📈', 'Modos': '🎮', 'Velocidad': '⚡', 'Racha': '🔥',
-    'Colección': '🗂️', 'Exploración': '🧭', 'General': '🏅'
+    'Progreso':'📈','Modos':'🎮','Velocidad':'⚡','Racha':'🔥','Colección':'🗂️','Exploración':'🧭','General':'🏅'
   };
-  const tierBg = { 'oro': 'bg-amber-100', 'plata': 'bg-slate-100', 'bronce': 'bg-emerald-50' };
+  const tierBg = { 'oro':'bg-amber-100','plata':'bg-slate-100','bronce':'bg-emerald-50' };
 
-  function lsGet(k, def) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : def; } catch { return def; } }
-  function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { } }
+  function lsGet(k, def){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):def; }catch{ return def; } }
+  function lsSet(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch{} }
 
-  async function loadCatalog() {
-    const cached = lsGet(LS.achCatalog, null);
-    if (cached && Array.isArray(cached)) return cached;
-    try {
-      const res = await fetch('./achievements.json', { cache: 'no-store' });
+  async function loadCatalog(){
+    try{
+      // Usa sólo el catálogo (nada de extras)
+      const res = await fetch('./achievements.json', { cache:'no-store' });
       const data = await res.json();
       const list = Array.isArray(data.achievements) ? data.achievements : [];
-      list.forEach(a => {
-        if (!a.tier || !['oro', 'plata', 'bronce'].includes(a.tier)) {
-          a.tier = (a.category === 'Modos' || a.category === 'Velocidad') ? 'plata' : 'bronce';
-        }
+      list.forEach(a=>{
+        if (!a.tier || !['oro','plata','bronce'].includes(a.tier)) a.tier = 'bronce';
+        if (!a.category) a.category = 'General';
       });
+      // cache soft
       lsSet(LS.achCatalog, list);
       return list;
-    } catch (e) {
-      console.warn('No se pudo cargar achievements.json', e);
-      return [];
+    }catch(e){
+      console.warn('achievements.json no disponible', e);
+      return lsGet(LS.achCatalog, []);
     }
   }
 
-  function listUnlocked() {
-    const map = lsGet(LS.achievements, {});
-    return map || {};
-  }
+  function listUnlocked(){ return lsGet(LS.achievements, {}) || {}; }
+  function pct(part, total){ return total? Math.round((part/total)*100) : 0; }
 
-  function pct(part, total) { return total ? Math.round((part / total) * 100) : 0; }
+  // Crea un <div id="achModal"> compatible con .showModal()/.close()
+  function ensureModal(){
+    let modal = $('#achModal');
+    if (modal) return modal;
 
-  // ---- Modal skeleton ------------------------------------------------------
-  function ensureModal() {
-    // Mantener oculta la sección inline si la app intenta mostrarla
-    const achSection = document.getElementById('achievementsSection');
-    if (achSection) achSection.classList.add('hidden');
-    if (achSection) {
-      const mo = new MutationObserver(() => { achSection.classList.add('hidden'); });
-      mo.observe(achSection, { attributes: true, attributeFilter: ['class'] });
-    }
-    if ($('#achModal')) return $('#achModal');
-
-    // Oculta la sección inline si existe
+    // Esconde cualquier sección inline si la hubiese
     const inline = $('#achievementsSection');
-    if (inline) inline.classList.add('hidden');
+    if (inline){
+      inline.classList.add('hidden');
+      inline.style.display = 'none';
+      // Si la app intenta mostrarla, la volvemos a ocultar
+      const mo = new MutationObserver(()=>{ inline.classList.add('hidden'); inline.style.display='none'; });
+      mo.observe(inline, { attributes:true, attributeFilter:['class','style'] });
+    }
 
-    const div = document.createElement('div');
-    div.id = 'achModal';
-    div.className = 'fixed inset-0 z-[100] hidden';
-    div.innerHTML = `
+    modal = document.createElement('div');
+    modal.id = 'achModal';
+    modal.className = 'fixed inset-0 z-[100] hidden';
+    modal.setAttribute('aria-hidden','true');
+    modal.innerHTML = `
       <div id="achBackdrop" class="absolute inset-0 bg-black/40"></div>
-      <div class="absolute inset-0 overflow-y-auto">
-        <div class="mx-auto max-w-6xl p-4 md:p-6">
+      <div class="absolute inset-0 overflow-y-auto pointer-events-none">
+        <div class="mx-auto max-w-6xl p-4 md:p-6 pointer-events-auto">
           <div class="rounded-2xl bg-white shadow-xl ring-1 ring-black/5">
             <div class="flex items-center justify-between p-4 md:p-5 border-b">
-              <h3 class="text-xl md:text-2xl font-bold flex items-center gap-2">
-                🏆 Sala de logros
-              </h3>
+              <h3 class="text-xl md:text-2xl font-bold flex items-center gap-2">🏆 Sala de logros</h3>
               <button id="achClose" class="px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200">Cerrar ✕</button>
             </div>
-
             <div class="p-4 md:p-6 space-y-5">
               <section>
                 <div class="flex items-center justify-between">
@@ -84,7 +75,6 @@
                   <div id="achBar" class="h-2 bg-emerald-500 w-0"></div>
                 </div>
               </section>
-
               <section>
                 <div id="achGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>
               </section>
@@ -92,8 +82,6 @@
           </div>
         </div>
       </div>
-
-      <!-- Drawer detalle -->
       <div id="achDrawer" class="fixed right-0 top-0 h-full w-full sm:w-[420px] bg-white shadow-2xl translate-x-full transition-transform duration-200 z-[110]">
         <div class="p-4 md:p-5 border-b flex items-center justify-between">
           <div class="flex items-center gap-3">
@@ -111,67 +99,55 @@
         </div>
       </div>
     `;
-    document.body.appendChild(div);
-    // Shim para compatibilidad con app.js (usa <dialog>.showModal())
-    div.showModal = openModal;
-    div.close = closeModal;
+    document.body.appendChild(modal);
 
-    // Cierre
-    $('#achBackdrop').addEventListener('click', closeModal);
-    $('#achClose').addEventListener('click', closeModal);
+    // Shim de compatibilidad (la app llama achModal.showModal/close)
+    modal.showModal = function(){
+      modal.classList.remove('hidden');
+      modal.setAttribute('aria-hidden','false');
+      // No tocamos overflow del body para evitar romper scroll/botones
+    };
+    modal.close = function(){
+      modal.classList.add('hidden');
+      modal.setAttribute('aria-hidden','true');
+      closeDrawer();
+    };
+
+    // Cierres seguros
+    $('#achBackdrop').addEventListener('click', ()=> modal.close());
+    $('#achClose').addEventListener('click',  ()=> modal.close());
     $('#achCloseDrawer').addEventListener('click', closeDrawer);
-    document.addEventListener('keydown', (e) => {
-      if (!div.classList.contains('hidden') && e.key === 'Escape') {
-        // Si drawer abierto, ciérralo primero
+    document.addEventListener('keydown', (e)=>{
+      if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
         const dr = $('#achDrawer');
-        if (dr && !dr.classList.contains('translate-x-full')) {
-          closeDrawer();
-        } else {
-          closeModal();
-        }
+        if (dr && !dr.classList.contains('translate-x-full')) closeDrawer();
+        else modal.close();
       }
     });
 
-    return div;
+    return modal;
   }
 
-  function openModal() {
-    ensureModal();
-    $('#achModal').classList.remove('hidden');
-    document.body.classList.add('overflow-hidden');
-  }
-  function closeModal() {
-    $('#achModal')?.classList.add('hidden');
-    document.body.classList.remove('overflow-hidden');
-  }
-  function openDrawer(meta, unlockedInfo) {
+  function openDrawer(meta, unlockedInfo){
     $('#achArt').textContent = (catEmoji[meta.category] || '🏅');
     $('#achName').textContent = meta.name;
-    $('#achCat').textContent = meta.category || 'General';
+    $('#achCat').textContent  = meta.category || 'General';
     $('#achDesc').textContent = meta.desc || meta.idea || '';
     const dt = unlockedInfo?.date ? new Date(unlockedInfo.date).toLocaleString('es-ES') : 'Aún bloqueado';
     $('#achDate').textContent = dt;
     $('#achDrawer')?.classList.remove('translate-x-full');
   }
-  function closeDrawer() {
-    $('#achDrawer')?.classList.add('translate-x-full');
-  }
+  function closeDrawer(){ $('#achDrawer')?.classList.add('translate-x-full'); }
 
-  // API principal que usa el botón "Logros" de la app
-  window.renderAchievements = async function renderAchievements() {
+  // API pública que la app ya invoca
+  window.renderAchievements = async function renderAchievements(){
     const modal = ensureModal();
     const grid = $('#achGrid');
-    let catalog = await loadCatalog();
+    const catalog = await loadCatalog();
     const unlocked = listUnlocked();
-    // Añadir como 'extras' los logros desbloqueados que no existen en el catálogo
-    const extraIds = Object.keys(unlocked).filter(id => !catalog.some(a=>a.id===id));
-    if (extraIds.length){
-      catalog = catalog.concat(extraIds.map(id=>({id, name: id, desc:'Logro del sistema', category:'General', tier:'bronce'})));
-    }
-    const total = catalog.length;
     let unlockedCount = 0;
 
-    grid.innerHTML = catalog.map(meta => {
+    grid.innerHTML = catalog.map(meta=>{
       const isUnlocked = !!unlocked[meta.id];
       if (isUnlocked) unlockedCount++;
       const cls = isUnlocked ? 'opacity-100' : 'opacity-60';
@@ -186,47 +162,24 @@
         </article>`;
     }).join('');
 
-    // Progreso
+    const total = catalog.length;
     const p = pct(unlockedCount, total);
     $('#achBar').style.width = p + '%';
     $('#achPct').textContent = p + '%';
 
-    // Click -> detalle
-    $$('#achGrid .ach-card').forEach(card => {
-      card.addEventListener('click', () => {
+    $$('#achGrid .ach-card').forEach(card=>{
+      card.addEventListener('click', ()=>{
         const id = card.getAttribute('data-id');
-        const meta = catalog.find(a => a.id === id);
+        const meta = catalog.find(a=>a.id===id);
         const info = unlocked[id];
         openDrawer(meta, info);
       });
     });
 
-    openModal();
+    // Abrimos el modal (la app también puede llamar .showModal())
+    modal.showModal();
   };
 
-  // Conecta el botón "Logros" si existe (mejor UX)
-  document.addEventListener('DOMContentLoaded', () => {
-    // Si la app ya tiene botón con data-role o id comunes, lo enganchamos
-    const candidates = [
-      '#btnLogros',
-      '[data-role="open-achievements"]',
-      'button',
-      'a'
-    ];
-    for (const sel of candidates) {
-      $$(sel).forEach(el => {
-        const txt = (el.textContent || '').trim().toLowerCase();
-        if (txt === 'logros' || txt.includes('🏅') || txt.includes('medallas')) {
-          // Evita duplicar listener
-          if (!el.dataset.achBound) {
-            el.addEventListener('click', (ev) => {
-              // Deja pasar si la app ya llama a renderAchievements; en cualquier caso lo forzamos
-              setTimeout(() => window.renderAchievements(), 0);
-            });
-            el.dataset.achBound = '1';
-          }
-        }
-      });
-    }
-  });
+  // No auto-enganchar botones aquí para evitar efectos colaterales.
+  // La app ya tiene su listener que llama window.renderAchievements() y achModal.showModal().
 })();
