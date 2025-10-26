@@ -1,0 +1,301 @@
+{
+  "achievements": [
+    {
+      "id": "logro_primera_bandera",
+      "name": "Primer paso",
+      "desc": "Desbloqueas tu primera bandera.",
+      "category": "Progreso",
+      "idea": "Bandera ondeando sobre un mapa, con un pie dando el primer paso.",
+      "art": "nan",
+      "tier": "bronce"
+    },
+    {
+      "id": "logro_primera_capital",
+      "name": "Tu primera capital",
+      "desc": "Aciertas tu primera capital.",
+      "category": "Progreso",
+      "idea": "Edificio gubernamental con luz encendida sobre un mapa nocturno.",
+      "art": "nan",
+      "tier": "bronce"
+    },
+    {
+      "id": "logro_primer_mundo",
+      "name": "Ciudadano del Mundo",
+      "desc": "Juegas por primera vez en el modo Mundo.",
+      "category": "Modos",
+      "idea": "Globo terráqueo con confeti de banderas.",
+      "art": "nan",
+      "tier": "bronce"
+    },
+    {
+      "id": "logro_primer_europa",
+      "name": "Espíritu europeo",
+      "desc": "Juegas por primera vez en el modo Europa.",
+      "category": "Modos",
+      "idea": "Torre Eiffel, Coliseo y una estrella europea al fondo.",
+      "art": "nan",
+      "tier": "bronce"
+    },
+    {
+      "id": "logro_primer_asia",
+      "name": "Sabiduría oriental",
+      "desc": "Juegas por primera vez en el modo Asia.",
+      "category": "Modos",
+      "idea": "Templo asiático bajo un sol rojo naciente.",
+      "art": "nan",
+      "tier": "bronce"
+    },
+    {
+      "id": "logro_primer_america",
+      "name": "Aventurero americano",
+      "desc": "Juegas por primera vez en el modo América.",
+      "category": "Modos",
+      "idea": "Desierto y selva conectados por una brújula.",
+      "art": "nan",
+      "tier": "bronce"
+    },
+    {
+      "id": "logro_primer_oceania",
+      "name": "Explorador oceánico",
+      "desc": "Juegas por primera vez en el modo Oceanía.",
+      "category": "Modos",
+      "idea": "Isla flotante con delfines y olas.",
+      "art": "nan",
+      "tier": "bronce"
+    },
+    {
+      "id": "logro_primer_africa",
+      "name": "Ritmo africano",
+      "desc": "Juegas por primera vez en el modo África.",
+      "category": "Modos",
+      "idea": "Silueta de sabana con un león dorado al atardecer.",
+      "art": "nan",
+      "tier": "bronce"
+    },
+    {
+      "id": "logro_primer_otras",
+      "name": "Más allá del mapa",
+      "desc": "aciertas por primera vez una bandera o capital de Otros",
+      "category": "Modos",
+      "idea": "Borde de mapa con un barco y la frase “Aquí hay dragones”.",
+      "art": "nan",
+      "tier": "bronce"
+    },
+    {
+      "id": "logro_primer_facil",
+      "name": "Comienzo tranquilo",
+      "desc": "Juegas por primera vez en dificultad Fácil.",
+      "category": "Dificultad",
+      "idea": "Silla de playa, mapa abierto y sol suave.",
+      "art": "nan",
+      "tier": "bronce"
+    },
+    {
+      "id": "logro_primer_medio",
+      "name": "Retador intermedio",
+      "desc": "Juegas por primera vez en dificultad Media.",
+      "category": "Dificultad",
+      "idea": "Dos montañas y un aventurero subiendo.",
+      "art": "nan",
+      "tier": "bronce"
+    },
+    {
+      "id": "logro_primer_dificil",
+      "name": "Sin miedo",
+      "desc": "Juegas por primera vez en dificultad Difícil.",
+      "category": "Dificultad",
+      "idea": "Pico nevado con bandera roja en la cima.",
+      "art": "nan",
+      "tier": "bronce"
+    },
+    {
+      "id": "logro_primer_supervivencia",
+      "name": "Modo supervivencia activado",
+      "desc": "Juegas por primera vez en modo Supervivencia.",
+      "category": "Modos",
+      "idea": "Calavera y reloj de arena sobre fondo oscuro.",
+      "art": "nan",
+      "tier": "bronce"
+    },
+    {
+      "id": "logro_primer_reto_dia",
+      "name": "Reto aceptado",
+      "desc": "Juegas tu primer Reto del día.",
+      "category": "Modos",
+      "idea": "Calendario con una estrella brillante marcada.",
+      "art": "nan",
+      "tier": "bronce"
+    },
+    {
+      "id": "ID",
+      "name": "Nombre",
+      "desc": "Descripción",
+      "category": "Categoría",
+      "idea": "Idea visual",
+      "art": "nan",
+      "tier": "bronce"
+    },
+    {
+      "id": "logro_racha_1",
+      "name": "Primer acierto",
+      "desc": "Aciertas tu primera pregunta.",
+      "category": "Rachas",
+      "idea": "Bandera ondeando con confeti.",
+      "art": "nan",
+      "tier": "bronce"
+    },
+    {
+      "id": "logro_racha_3",
+      "name": "Empieza la racha",
+      "desc": "Consigues 3 aciertos seguidos.",
+      "category": "Rachas",
+      "idea": "Tres chispas encendiendo un camino.",
+      "art": "nan",
+      "tier": "bronce"
+    },
+    {
+      "id": "logro_racha_7",
+      "name": "En calor",
+      "desc": "Consigues 7 aciertos seguidos.",
+      "category": "Rachas",
+      "idea": "Termómetro ardiendo sobre un mapa.",
+      "art": "nan",
+      "tier": "bronce"
+    },
+    {
+      "id": "logro_racha_10",
+      "name": "Ronda perfecta",
+      "desc": "10 aciertos seguidos sin fallar.",
+      "category": "Rachas",
+      "idea": "Corona dorada sobre un tablero sin errores.",
+      "art": "nan",
+      "tier": "bronce"
+    },
+    {
+      "id": "sup_1",
+      "name": "Superviviente novato",
+      "desc": "Consigues 1 acierto en modo Supervivencia.",
+      "category": "Supervivencia",
+      "idea": "Linterna en la oscuridad.",
+      "art": "nan",
+      "tier": "bronce"
+    },
+    {
+      "id": "sup_3",
+      "name": "Aguantando",
+      "desc": "Logras 3 aciertos seguidos en Supervivencia.",
+      "category": "Supervivencia",
+      "idea": "Candil entre sombras.",
+      "art": "nan",
+      "tier": "bronce"
+    },
+    {
+      "id": "sup_7",
+      "name": "Sigue con vida",
+      "desc": "7 aciertos seguidos en Supervivencia.",
+      "category": "Supervivencia",
+      "idea": "Corazón latiendo en una niebla.",
+      "art": "nan",
+      "tier": "bronce"
+    },
+    {
+      "id": "sup_11",
+      "name": "Inmortal en práctica",
+      "desc": "11 aciertos seguidos.",
+      "category": "Supervivencia",
+      "idea": "Guerrero con escudo y luz detrás.",
+      "art": "nan",
+      "tier": "bronce"
+    },
+    {
+      "id": "sup_25",
+      "name": "Leyenda superviviente",
+      "desc": "25 aciertos seguidos.",
+      "category": "Supervivencia",
+      "idea": "Mapa quemado con marcas de fuego.",
+      "art": "nan",
+      "tier": "bronce"
+    },
+    {
+      "id": "sup_49",
+      "name": "Casi cincuenta...",
+      "desc": "49 aciertos seguidos. ¡A esto le llaman crueldad!",
+      "category": "Supervivencia",
+      "idea": "Calavera riéndose con el número 49 tachado.",
+      "art": "nan",
+      "tier": "bronce"
+    },
+    {
+      "id": "sup_99",
+      "name": "El elegido",
+      "desc": "99 aciertos seguidos.",
+      "category": "Supervivencia",
+      "idea": "Rayo dorado sobre el planeta.",
+      "art": "nan",
+      "tier": "bronce"
+    },
+    {
+      "id": "sup_imposible",
+      "name": "¿Esto es real?",
+      "desc": "Juegas todo el modo Supervivencia completo sin fallar una sola vez.",
+      "category": "Supervivencia",
+      "idea": "Figura misteriosa rodeada de luz, sin texto visible (secreto).",
+      "art": "nan",
+      "tier": "bronce"
+    },
+    {
+      "id": "reto_1",
+      "name": "Primer reto superado",
+      "desc": "Superas tu primer reto diario.",
+      "category": "Reto del día",
+      "idea": "Calendario con un check brillante.",
+      "art": "nan",
+      "tier": "bronce"
+    },
+    {
+      "id": "reto_5",
+      "name": "Semana prometedora",
+      "desc": "Superas 5 retos seguidos.",
+      "category": "Reto del día",
+      "idea": "5 estrellas alineadas sobre un calendario.",
+      "art": "nan",
+      "tier": "bronce"
+    },
+    {
+      "id": "reto_7",
+      "name": "Semana perfecta",
+      "desc": "7 retos seguidos sin fallar.",
+      "category": "Reto del día",
+      "idea": "Corona de laurel con número 7.",
+      "art": "nan",
+      "tier": "bronce"
+    },
+    {
+      "id": "reto_11",
+      "name": "Once es un número mágico",
+      "desc": "11 días seguidos completando retos.",
+      "category": "Reto del día",
+      "idea": "Calendario con el número 11 brillante.",
+      "art": "nan",
+      "tier": "bronce"
+    },
+    {
+      "id": "reto_17",
+      "name": "Maratón de retos",
+      "desc": "17 días seguidos sin fallar.",
+      "category": "Reto del día",
+      "idea": "Camino largo con banderas de meta.",
+      "art": "nan",
+      "tier": "bronce"
+    },
+    {
+      "id": "reto_mes",
+      "name": "Imparable",
+      "desc": "30 días seguidos completando el reto diario.",
+      "category": "Reto del día",
+      "idea": "Calendario lleno de marcas doradas, brillante.",
+      "art": "nan",
+      "tier": "bronce"
+    }
+  ]
+}
