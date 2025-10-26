@@ -46,6 +46,13 @@
 
   // ---- Modal skeleton ------------------------------------------------------
   function ensureModal() {
+    // Mantener oculta la sección inline si la app intenta mostrarla
+    const achSection = document.getElementById('achievementsSection');
+    if (achSection) achSection.classList.add('hidden');
+    if (achSection) {
+      const mo = new MutationObserver(() => { achSection.classList.add('hidden'); });
+      mo.observe(achSection, { attributes: true, attributeFilter: ['class'] });
+    }
     if ($('#achModal')) return $('#achModal');
 
     // Oculta la sección inline si existe
@@ -105,6 +112,9 @@
       </div>
     `;
     document.body.appendChild(div);
+    // Shim para compatibilidad con app.js (usa <dialog>.showModal())
+    div.showModal = openModal;
+    div.close = closeModal;
 
     // Cierre
     $('#achBackdrop').addEventListener('click', closeModal);
@@ -151,8 +161,13 @@
   window.renderAchievements = async function renderAchievements() {
     const modal = ensureModal();
     const grid = $('#achGrid');
-    const catalog = await loadCatalog();
+    let catalog = await loadCatalog();
     const unlocked = listUnlocked();
+    // Añadir como 'extras' los logros desbloqueados que no existen en el catálogo
+    const extraIds = Object.keys(unlocked).filter(id => !catalog.some(a=>a.id===id));
+    if (extraIds.length){
+      catalog = catalog.concat(extraIds.map(id=>({id, name: id, desc:'Logro del sistema', category:'General', tier:'bronce'})));
+    }
     const total = catalog.length;
     let unlockedCount = 0;
 
