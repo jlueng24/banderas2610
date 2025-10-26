@@ -1,53 +1,37 @@
 
-// achievements.js — Modal seguro y aislado (no interfiere con la app)
+// achievements.js — Modal sin bloqueo de página + cierre robusto
 (function(){
-  // Helpers locales (no contaminan global)
   const $  = s => document.querySelector(s);
   const $$ = s => Array.from(document.querySelectorAll(s));
-
   const LS = { achievements:'pro_achievements', achCatalog:'pro_ach_catalog' };
 
-  const catEmoji = {
-    'Progreso':'📈','Modos':'🎮','Velocidad':'⚡','Racha':'🔥','Colección':'🗂️','Exploración':'🧭','General':'🏅'
-  };
-  const tierBg = { 'oro':'bg-amber-100','plata':'bg-slate-100','bronce':'bg-emerald-50' };
+  const catEmoji = { 'Progreso':'📈','Modos':'🎮','Velocidad':'⚡','Racha':'🔥','Colección':'🗂️','Exploración':'🧭','General':'🏅' };
+  const tierBg   = { 'oro':'bg-amber-100','plata':'bg-slate-100','bronce':'bg-emerald-50' };
 
-  function lsGet(k, def){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):def; }catch{ return def; } }
+  function lsGet(k, d){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch{ return d; } }
   function lsSet(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch{} }
 
   async function loadCatalog(){
     try{
-      // Usa sólo el catálogo (nada de extras)
-      const res = await fetch('./achievements.json', { cache:'no-store' });
+      const res  = await fetch('./achievements.json', { cache:'no-store' });
       const data = await res.json();
       const list = Array.isArray(data.achievements) ? data.achievements : [];
-      list.forEach(a=>{
-        if (!a.tier || !['oro','plata','bronce'].includes(a.tier)) a.tier = 'bronce';
-        if (!a.category) a.category = 'General';
-      });
-      // cache soft
+      list.forEach(a=>{ if(!a.tier) a.tier='bronce'; if(!a.category) a.category='General'; });
       lsSet(LS.achCatalog, list);
       return list;
-    }catch(e){
-      console.warn('achievements.json no disponible', e);
-      return lsGet(LS.achCatalog, []);
-    }
+    }catch{ return lsGet(LS.achCatalog, []); }
   }
-
   function listUnlocked(){ return lsGet(LS.achievements, {}) || {}; }
-  function pct(part, total){ return total? Math.round((part/total)*100) : 0; }
+  function pct(n,t){ return t? Math.round((n/t)*100) : 0; }
 
-  // Crea un <div id="achModal"> compatible con .showModal()/.close()
   function ensureModal(){
     let modal = $('#achModal');
     if (modal) return modal;
 
-    // Esconde cualquier sección inline si la hubiese
+    // Esconde cualquier sección inline que pueda dejar scroll/overlay raro
     const inline = $('#achievementsSection');
     if (inline){
-      inline.classList.add('hidden');
-      inline.style.display = 'none';
-      // Si la app intenta mostrarla, la volvemos a ocultar
+      inline.classList.add('hidden'); inline.style.display='none';
       const mo = new MutationObserver(()=>{ inline.classList.add('hidden'); inline.style.display='none'; });
       mo.observe(inline, { attributes:true, attributeFilter:['class','style'] });
     }
@@ -55,6 +39,8 @@
     modal = document.createElement('div');
     modal.id = 'achModal';
     modal.className = 'fixed inset-0 z-[100] hidden';
+    modal.setAttribute('role','dialog');
+    modal.setAttribute('aria-modal','true');
     modal.setAttribute('aria-hidden','true');
     modal.innerHTML = `
       <div id="achBackdrop" class="absolute inset-0 bg-black/40"></div>
@@ -63,7 +49,9 @@
           <div class="rounded-2xl bg-white shadow-xl ring-1 ring-black/5">
             <div class="flex items-center justify-between p-4 md:p-5 border-b">
               <h3 class="text-xl md:text-2xl font-bold flex items-center gap-2">🏆 Sala de logros</h3>
-              <button id="achClose" class="px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200">Cerrar ✕</button>
+              <div class="flex items-center gap-2">
+                <button id="achClose" class="px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200">Cerrar ✕</button>
+              </div>
             </div>
             <div class="p-4 md:p-6 space-y-5">
               <section>
@@ -86,10 +74,7 @@
         <div class="p-4 md:p-5 border-b flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div id="achArt" class="w-10 h-10 rounded-xl bg-slate-100 grid place-items-center text-xl">🏅</div>
-            <div>
-              <div id="achName" class="font-bold"></div>
-              <div id="achCat" class="text-xs text-slate-500"></div>
-            </div>
+            <div><div id="achName" class="font-bold"></div><div id="achCat" class="text-xs text-slate-500"></div></div>
           </div>
           <button id="achCloseDrawer" class="px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200">Cerrar</button>
         </div>
@@ -101,59 +86,76 @@
     `;
     document.body.appendChild(modal);
 
-    // Shim de compatibilidad (la app llama achModal.showModal/close)
-    modal.showModal = function(){
-      modal.classList.remove('hidden');
-      modal.setAttribute('aria-hidden','false');
-      // No tocamos overflow del body para evitar romper scroll/botones
+    // SHIM: compatibilidad con app.js
+    modal.showModal = () => {
+      // Limpia posibles bloqueos globales que deje la app
+      document.body.classList.remove('overflow-hidden','modal-open');
+      document.documentElement.classList.remove('overflow-hidden','modal-open');
+      document.body.style.overflow = ''; document.documentElement.style.overflow = '';
+      modal.classList.remove('hidden'); modal.setAttribute('aria-hidden','false');
     };
-    modal.close = function(){
-      modal.classList.add('hidden');
-      modal.setAttribute('aria-hidden','true');
+    modal.close = () => {
+      modal.classList.add('hidden'); modal.setAttribute('aria-hidden','true');
       closeDrawer();
+      // Quita cualquier overlay residual
+      document.body.classList.remove('overflow-hidden','modal-open');
+      document.documentElement.classList.remove('overflow-hidden','modal-open');
+      document.body.style.overflow = ''; document.documentElement.style.overflow = '';
     };
 
-    // Cierres seguros
+    // Cierres
     $('#achBackdrop').addEventListener('click', ()=> modal.close());
     $('#achClose').addEventListener('click',  ()=> modal.close());
     $('#achCloseDrawer').addEventListener('click', closeDrawer);
     document.addEventListener('keydown', (e)=>{
-      if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+      if (e.key === 'Escape' && !modal.classList.contains('hidden')){
         const dr = $('#achDrawer');
         if (dr && !dr.classList.contains('translate-x-full')) closeDrawer();
         else modal.close();
       }
     });
 
+    // Toggle en el botón oficial si existe (abrir/cerrar)
+    const btn = $('#btnAchievements');
+    if (btn && !btn.dataset.achBound){
+      btn.addEventListener('click', (ev)=>{
+        // Si ya está abierto, lo cierro (no bloqueo la UI)
+        if (!modal.classList.contains('hidden')) { modal.close(); ev.preventDefault(); return; }
+        // Render + open
+        window.renderAchievements();
+      }, { capture:false });
+      btn.dataset.achBound = '1';
+    }
+
     return modal;
   }
 
-  function openDrawer(meta, unlockedInfo){
-    $('#achArt').textContent = (catEmoji[meta.category] || '🏅');
-    $('#achName').textContent = meta.name;
-    $('#achCat').textContent  = meta.category || 'General';
-    $('#achDesc').textContent = meta.desc || meta.idea || '';
-    const dt = unlockedInfo?.date ? new Date(unlockedInfo.date).toLocaleString('es-ES') : 'Aún bloqueado';
+  function openDrawer(meta, info){
+    $('#achArt').textContent = (meta && meta.category && {'Progreso':'📈','Modos':'🎮','Velocidad':'⚡','Racha':'🔥','Colección':'🗂️','Exploración':'🧭','General':'🏅'}[meta.category]) || '🏅';
+    $('#achName').textContent = meta?.name || '';
+    $('#achCat').textContent  = meta?.category || 'General';
+    $('#achDesc').textContent = meta?.desc || meta?.idea || '';
+    const dt = info?.date ? new Date(info.date).toLocaleString('es-ES') : 'Aún bloqueado';
     $('#achDate').textContent = dt;
     $('#achDrawer')?.classList.remove('translate-x-full');
   }
   function closeDrawer(){ $('#achDrawer')?.classList.add('translate-x-full'); }
 
-  // API pública que la app ya invoca
-  window.renderAchievements = async function renderAchievements(){
-    const modal = ensureModal();
-    const grid = $('#achGrid');
-    const catalog = await loadCatalog();
+  // API pública (la usa la app)
+  window.renderAchievements = async function(){
+    const modal    = ensureModal();
+    const catalog  = await loadCatalog();
     const unlocked = listUnlocked();
     let unlockedCount = 0;
 
+    const grid = $('#achGrid');
     grid.innerHTML = catalog.map(meta=>{
       const isUnlocked = !!unlocked[meta.id];
       if (isUnlocked) unlockedCount++;
-      const cls = isUnlocked ? 'opacity-100' : 'opacity-60';
+      const cls  = isUnlocked ? 'opacity-100' : 'opacity-60';
       const aura = isUnlocked ? 'ring-2 ring-emerald-400/50' : 'ring-1 ring-slate-200';
-      const emoji = (catEmoji[meta.category] || '🏅');
       const tier = tierBg[meta.tier] || 'bg-slate-100';
+      const emoji = {'Progreso':'📈','Modos':'🎮','Velocidad':'⚡','Racha':'🔥','Colección':'🗂️','Exploración':'🧭','General':'🏅'}[meta.category] || '🏅';
       return `
         <article class="rounded-2xl ${aura} p-3 bg-white hover:shadow transition cursor-pointer ach-card" data-id="${meta.id}">
           <div class="w-16 h-16 mx-auto rounded-xl grid place-items-center text-2xl ${tier} ${cls}">${emoji}</div>
@@ -162,24 +164,20 @@
         </article>`;
     }).join('');
 
-    const total = catalog.length;
-    const p = pct(unlockedCount, total);
+    const p = pct(unlockedCount, catalog.length);
     $('#achBar').style.width = p + '%';
     $('#achPct').textContent = p + '%';
 
     $$('#achGrid .ach-card').forEach(card=>{
       card.addEventListener('click', ()=>{
-        const id = card.getAttribute('data-id');
+        const id   = card.getAttribute('data-id');
         const meta = catalog.find(a=>a.id===id);
         const info = unlocked[id];
         openDrawer(meta, info);
       });
     });
 
-    // Abrimos el modal (la app también puede llamar .showModal())
+    // Abrir sin bloquear la página (no tocamos overflow del body)
     modal.showModal();
   };
-
-  // No auto-enganchar botones aquí para evitar efectos colaterales.
-  // La app ya tiene su listener que llama window.renderAchievements() y achModal.showModal().
 })();
