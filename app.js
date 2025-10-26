@@ -252,21 +252,13 @@ function updateGlobalStatsFromRun(){
 }
 
 /* ========= Logros (datos base) ========= */
-const ACH = {
-  streak3:       {id:'streak3',       name:'Racha 3',           desc:'Consigue 3 aciertos seguidos',  tier:'bronce', icon:'🎯'},
-  streak5:       {id:'streak5',       name:'Racha 5',           desc:'Consigue 5 aciertos seguidos',  tier:'plata',  icon:'🎯'},
-  survival60:    {id:'survival60',    name:'Supervivencia 60s', desc:'Aguanta 60s en Supervivencia',  tier:'plata',  icon:'⏳'},
-  europePerfect: {id:'euPerfect',     name:'Europa sin fallos', desc:'Acaba Europa sin fallos',       tier:'oro',    icon:'🥇'},
-  study10:       {id:'study10',       name:'Estudio aplicado',  desc:'Resuelve 10 en Estudio',        tier:'bronce', icon:'📚'}
-};
 function getAchievements(){ return lsGet(LS.achievements, {}); }
 function unlockAchievement(key){
-  const all = getAchievements();
-  if (all[key]) return;
-  all[key] = { date: new Date().toISOString(), ...ACH[key] };
+  const all = getAchievements(); if (all[key]) return;
+  all[key] = { date: new Date().toISOString() };
   lsSet(LS.achievements, all);
 }
-function listAchievements(){ return Object.values(getAchievements()); }
+function listAchievements(){ return Object.keys(getAchievements()); }
 
 /* ========= Reto del día ========= */
 function dailySeedIndex(max){
@@ -456,9 +448,51 @@ function newGame(){
   lsSet(LS.last, { mode: currentMode, level: currentLevel, theme: currentTheme });
 
   showScreen('game');
+  tryUnlockFirstTheme(currentTheme);
   renderQuestion();
 }
 
+
+/* ========= Logros Excel: helpers ========= */
+function hasAchievement(id){ const a=getAchievements(); return !!a[id]; }
+function unlockIfPresent(id){ try{ unlockAchievement(id); }catch(e){} }
+function tryUnlockFirstTheme(theme){
+  const map = { 
+    'all':'logro_primer_mundo',
+    'Europe':'logro_primer_europa',
+    'Asia':'logro_primer_asia',
+    'America':'logro_primer_america',
+    'Africa':'logro_primer_africa',
+    'Oceania':'logro_primer_oceania'
+  };
+  const id = map[theme];
+  if (id && !hasAchievement(id)) unlockIfPresent(id);
+}
+// Carga catálogo para nombrar chips en la pantalla final
+let __achCatalogCache = null;
+async function loadAchCatalog(){
+  if (__achCatalogCache) return __achCatalogCache;
+  try{
+    const res = await fetch('./achievements.json', { cache:'no-store' });
+    const data = await res.json();
+    const map = {};
+    (data.achievements||[]).forEach(a=>{ map[a.id]=a; });
+    __achCatalogCache = map;
+    return map;
+  }catch(e){ return {}; }
+}
+async function renderFinalAchievementChips(listEl){
+  try{
+    const keys = Object.keys(getAchievements()); // IDs
+    if (!keys.length){ listEl.innerHTML=''; return; }
+    const cat = await loadAchCatalog();
+    listEl.innerHTML = keys.map(id=>{
+      const a = cat[id];
+      const name = a?.name || id;
+      return `<span class="inline-flex items-center gap-1 px-3 py-1 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs">🏅 ${name}</span>`;
+    }).join(' ');
+  }catch(e){ /* noop */ }
+}
 function renderQuestion(){
   const q = order[idx];
   // FIX: guard seguro (no usar q antes de definir y comprobar .item)
@@ -800,8 +834,9 @@ function onSelect(e){
     markButtons($$("#card-capital .answer-btn.cap"), btn);
   }
 
-  if (streak===3) unlockAchievement('streak3');
-  if (streak===5) { unlockAchievement('streak5'); fxStreak(); }
+  if (correct && currentMode==='capitals'){ if(!hasAchievement('logro_primera_capital')) unlockIfPresent('logro_primera_capital'); }
+if (correct && currentMode!=='capitals' && currentMode!=='study'){ if(!hasAchievement('logro_primera_bandera')) unlockIfPresent('logro_primera_bandera'); }
+  
 
   if (currentMode==='survival'){
     if (!correct){ endGame(true); return; }
@@ -891,8 +926,8 @@ function endGame(){
   ui.finalMisses.textContent = misses;
 
   if (currentMode==='survival' && timeSurvivedSec>=60) unlockAchievement('survival60');
-  if (currentTheme==='Europe' && misses===0) unlockAchievement('europePerfect');
-  if (currentMode==='study' && (hits>=10)) unlockAchievement('study10');
+  
+  
 
   const ach = listAchievements();
   ui.achievementsList.innerHTML = ach.length ? ach.map(a=>`<span class="px-3 py-1 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold" title="${a.desc}">🏅 ${a.name}</span>`).join('') : `<span class="text-slate-500 text-sm">Sin logros aún.</span>`;
